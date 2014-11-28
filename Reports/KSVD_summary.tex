@@ -1,0 +1,54 @@
+\documentclass[10pt,a4paper,final]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\title{A quick summary of the K-SVD algorithm}
+\author{Devdeep Ray}
+\begin{document}
+\maketitle
+\section{Introduction}
+We discuss the K-SVD algorithm in brief. This algorithm aims to select a dictionary that best represents a set of given training samples under sparsity constraints. It is a two phase iterative algorithm that alternates between sparse coding of the samples and updating the dictionary.
+\section{Symbols used in this report}
+\begin{enumerate}
+\item $n$: The dimension of the data
+\item $K$: The number of atoms in the dictionary
+\item $\mathbf{D} \in \mathbb{R}^{n \times K}$: The final dictionary matrix
+\end{enumerate}
+\section{Getting sparse representation for a given dictionary}
+We want a matrix $\mathbf{D}$ which gives the best possible reconstruction of $\mathbf{y} \in \mathbf{R}^n$, under constraint that the weight vector $\mathbf{x} \in \mathbf{R}^n$ is sparse. Now, if $n < K$, and $\mathbf{D}$ has full rank, then we will have infinite solutions for $\mathbf{x}$. Thus, we try to choose the $\mathbf{x}$ with the least number of non zero coefficients (sparsity constraint). This can be put down as\\
+\begin{center}
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{x}}\|\mathbf{x}\|_0$ subject to $\|\mathbf{y} - \mathbf{Dx}\|_2 < \epsilon$ 
+\end{center}
+Here, $\|\cdot\|_0$ is the zero norm, which is basically the number of non-zero elements. This is one of the phases of the two step iterative process. This turns out to be an NP-hard problem and there are approximate solutions using various pursuit algorithms, eg. matching pursuit, orthogonal matching pursuit, etc.
+\section{The dictionary}
+In this report, we discuss an algorithm to get a dictionary from training data that gives sparse representation of the data. More specifically, we find the dictionary that gives the best possible representation of each member in the traning set but under strict sparsity constraints. The overall optimization problem can be stated in two ways: \\
+\begin{center}
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D},\mathbf{X}}\{\|\mathbf{Y}-\mathbf{DX}\|_F^2\}$ subject to $\forall i, \|x_i\|_0 \leq T_0$\\
+OR\\
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D}, \mathbf{X}}\sum_i\|x_i\|_0$ subject to $\|\mathbf{Y}-\mathbf{DX}\|_F^2 \leq \epsilon$\\
+\end{center}
+In the first case, we are getting sparsity by applying a hard limit on the number of non-zero elements, and trying to minimize the representative error. In the second one, we are applying a hard limit on the error, and trying to maximize sparsity by minimizing the number of non-zero elements. The paper only discusses the first case. \pagebreak
+\section{The K-SVD algorithm}
+\subsection{The two phases}
+The algorithm proceeds in two phases. In one phase, the dictionary is fixed, and we get sparse vectors, $\mathbf{x}_i$, which result in the reconstructions having least MSE under the given dictionary. 
+In the second phase, we update $\mathbf{D}$ column by column, fixing $\mathbf{X}$ and all other columns of $\mathbf{D}$. This update is immediately incorporated into the matrix $\mathbf{D}$, accelerating convergence. This is similar to the Gauss-Seidel algorithm, where the new updates are not delayed till the end of the macro step, but immediately applied and used for the update of the next column. Once this is done, $\mathbf{X}$ is recomputed and the algorithm keeps alternating like this.
+\subsection{Dictionary update}
+The error term can be rewritten as
+\begin{center}
+$\|\mathbf{Y}-\sum_{j=1}^{K}\mathbf{d}_j\mathbf{x}_T^j\|_F^2$
+\end{center}
+where $\mathbf{d}_jj$ is the $j^{th}$ column of $\mathbf{D}$ and $\mathbf{x}_T^j$ is the $j^{th}$ row of $\mathbf{X}$. This can further be written as 
+\begin{center}
+$\|\mathbf{E}_k - \mathbf{d}_k\mathbf{x}_T^k\|_F^2$
+\end{center}
+for some $k$ where 
+\begin{center}
+$\mathbf{E}_k=\left(\mathbf{Y}-\sum_{j \neq k} \mathbf{d}_j \mathbf{x}_T^j\right)$
+\end{center}
+Now, $\mathbf{d}_k\mathbf{x}_T^k$ is a rank 1 matrix, and we may use SVD to get this, as SVD gives the best rank 1 approximation of a matrix (under the Frobenius norm), but if we do that here, then the new $\mathbf{x}_T^k$ will probably be filled, hence destroying our sparsity constraint (consider a column where an element of $\mathbf{x}_T^k$ is zero, and the column is of maximum possible sparsity. If the new element at this column of $\mathbf{x}_T^k$ is non-zero, we have broken the sparsity constraint). 
+To overcome this, we work with only those examples which use the $j^{th}$ atom in the current representation. Let the number of non-zero elements in $\mathbf{x}_T^j$ be $q$. Chose only these columns from $\mathbf{E}_k$ and call it $\mathbf{E}_k^R$. This is the error matrix corresponding to the examples which use atom $j$. Similarly, remove from $\mathbf{x}_T^j$ the zero elements and call this new row vector $\mathbf{x}_R^j$. 
+Now, if we minimize $\|\mathbf{E}_k^R - \mathbf{d}_k\mathbf{x}_R^k\|_F^2$ wrt $\mathbf{d}_j$ and $\mathbf{x}_R^j$, it is like minimizing the original function, but with the same non-zero columns or a subset of them. This can be done by SVD.
+\end{document}
