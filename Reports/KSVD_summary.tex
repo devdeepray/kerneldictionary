@@ -20,9 +20,9 @@ Here, $\|\cdot\|_0$ is the zero norm, which is basically the number of non-zero 
 \section{The dictionary}
 In this report, we discuss an algorithm to get a dictionary from training data that gives sparse representation of the data. More specifically, we find the dictionary that gives the best possible representation of each member in the traning set but under strict sparsity constraints. The overall optimization problem can be stated in two ways: \\
 \begin{center}
-$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D},\mathbf{X}}\{\|\mathbf{Y}-\mathbf{DX}\|_F^2\}$ subject to $\forall i, \|x_i\|_0 \leq T_0$\\
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D},\mathbf{X}}\{\|\mathbf{Y}-\mathbf{DX}\|_F^2\}$ subject to $\forall i, \|\mathbf{x}_i\|_0 \leq T_0$\\
 OR\\
-$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D}, \mathbf{X}}\sum_i\|x_i\|_0$ subject to $\|\mathbf{Y}-\mathbf{DX}\|_F^2 \leq \epsilon$\\
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D}, \mathbf{X}}\sum_i\|\mathbf{x}_i\|_0$ subject to $\|\mathbf{Y}-\mathbf{DX}\|_F^2 \leq \epsilon$\\
 \end{center}
 In the first case, we are getting sparsity by applying a hard limit on the number of non-zero elements, and trying to minimize the representative error. In the second one, we are applying a hard limit on the error, and trying to maximize sparsity by minimizing the number of non-zero elements. The paper only discusses the first case. \pagebreak
 \section{The K-SVD algorithm}
@@ -63,4 +63,43 @@ for i = 1:k // k is the number of non-zero coefficients allowed
 end for
 \end{verbatim} 
 \begin{texttt}a(i)\end{texttt} contains the coefficients and \begin{texttt}b(i)\end{texttt} contains the indices of the corresponding atom in the dictionary. 
+\section{Switching to the kernel}
+The above can be extended to kernel based dictionaries. Lets assume that we have a kernel mapping $\Phi$, which maps the given data to a different space (possibly having infinite dimensions). Now, we try to get a sparse representation using a dictionary in this space. Hence, the problem can now be formulated as 
+\begin{center}
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{D},\mathbf{X}}\{\|\Phi\left(\mathbf{Y}\right)-\mathbf{DX}\|_F^2\}$ subject to $\forall i, \|\mathbf{x}_i\|_0 \leq T_0$
+\end{center}
+Since the dictionary atoms would lie in the space of $\Phi\left(\mathbf{Y}\right)$, we can replace $\mathbf{D}$ by $\Phi\left(\mathbf{Y}\right)\mathbf{A}$, and we modify $\mathbf{A}$ to adapt the dictionary. Note that A has dimension $n\times n$, where $n$ is the number of examples. Hence the problem can be now stated as 
+\begin{center}
+$\genfrac{}{}{0pt}{}{argmin}{\mathbf{A},\mathbf{X}}\{\|\Phi\left(\mathbf{Y}\right)-\Phi\left(\mathbf{Y}\right)\mathbf{AX}\|_F^2\}$ subject to $\forall i, \|\mathbf{x}_i\|_0 \leq T_0$
+\end{center}
+\subsection{Updating X}
+The above mentioned MP algorithm can be easily adapted to kernels. When we use kernels, instead of an explicit mapping $\Phi$, we replace the inner product in the input space with a Mercer kernel. It can be shown that this corresponds to mapping the data with some $\Phi$ into some feature space. Here is the modified algorithm
+\begin{verbatim}
+for i = 1:k // k is the number of non-zero coefficients allowed
+    d0 = column from dictionary having maximum |K(d, y)-sum{j<i}(a(j)*K(d, D(b(j)))|;
+    set a(i) as K(d0, R);
+    set b(i) as index of d0 in the dictionary;
+end for
+\end{verbatim}
+\subsection{Updating D}
+The error can be re-written as 
+\begin{center}
+$\|\Phi\left(\mathbf{Y}\right)\mathbf{E}_k-\Phi\left(\mathbf{Y}\right)\mathbf{a}_k\mathbf{x}_T^k\|_F^2$
+\end{center}
+where $\mathbf{E}_k$ is $\left(\mathbf{I}-\sum_{j\neq k}\mathbf{a}_j\mathbf{x}_T^j\right)$.
+This is similar to the earlier case. We again consider only the examples that use the $k^{th}$ atom in the current representation. Define $\mathbf{E}_k^R$ and $\mathbf{x}_R^k$ as earlier.  Consider
+\begin{center}
+$\Phi\left(\mathbf{Y}\right)\mathbf{E}_k^R = \mathbf{USV}^T$ and $\Phi\left(\mathbf{Y}\right)\mathbf{a}_k\mathbf{x}_R^k=\sigma_1\mathbf{u}_1\mathbf{v}_1^T$
+\end{center}
+As earlier, consider the following assignment for $\mathbf{x}_R^k$ and $\mathbf{a}_k$
+\begin{center}
+$\mathbf{x}_R^k = \sigma_1\mathbf{v}_1^T$
+$\mathbf{a}_k = \mathbf{u}_1$ 
+\end{center}
+This ensures that the dictionary atoms are normalized in the kernel space. 
+One issue here is that we cant do SVD directly because $\mathbf{E}_k^R$ may have infinite row dimension. We use the fact that SVD of a matrix $\mathbf{Q}$ is related to the eigen decomposition of $\mathbf{Q}^T\mathbf{Q}$. It is clear that
+\begin{center}
+$\left(\Phi\left(\mathbf{Y}\right)\mathbf{E}_k^R\right)^T\left(\Phi\left(\mathbf{Y}\right)\mathbf{E}_k^R\right)=\left(\mathbf{E}_k^R\right)^T\mathbb{K}\left(\mathbf{Y},\mathbf{Y}\right)\left(\mathbf{E}_k^R\right)=\mathbf{V}\Delta\mathbf{V}^T$
+\end{center}
+This gives us $\sigma_1=\sqrt{\Delta\left(1,1\right)}$ and $\mathbf{v}_1$ as the first column of $\mathbf{V}$. Thus, we have $\mathbf{x}_R^k$. After some algebraic manipulations, it can be seen that $\mathbf{a}_k=\sigma_1^{-1}\mathbf{E}_k^R\mathbf{v}_1$. This completes the description of the two phase kernel-SVD algorithm.
 \end{document}
