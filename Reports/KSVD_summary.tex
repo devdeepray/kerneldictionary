@@ -11,14 +11,8 @@
 \maketitle
 \section{Introduction}
 We discuss the K-SVD algorithm in brief. This algorithm aims to select a dictionary that best represents a set of given training samples under sparsity constraints. It is a two phase iterative algorithm that alternates between sparse coding of the samples and updating the dictionary.
-\section{Symbols used in this report}
-\begin{enumerate}
-\item $n$: The dimension of the data
-\item $K$: The number of atoms in the dictionary
-\item $\mathbf{D} \in \mathbb{R}^{n \times K}$: The final dictionary matrix
-\end{enumerate}
 \section{Getting sparse representation for a given dictionary}
-We want a matrix $\mathbf{D}$ which gives the best possible reconstruction of $\mathbf{y} \in \mathbf{R}^n$, under constraint that the weight vector $\mathbf{x} \in \mathbf{R}^n$ is sparse. Now, if $n < K$, and $\mathbf{D}$ has full rank, then we will have infinite solutions for $\mathbf{x}$. Thus, we try to choose the $\mathbf{x}$ with the least number of non zero coefficients (sparsity constraint). This can be put down as\\
+Let $n$ be the dimensionality of the data and $K$ be the number of atoms in the dictionary. We want a matrix $\mathbf{D} \in \mathbb{R}^{n \times K}$ which gives the best possible reconstruction of $\mathbf{y} \in \mathbf{R}^n=\mathbf{Dx}$, under constraint that the weight vector $\mathbf{x} \in \mathbf{R}^n$ is sparse. Now, if $n < K$, and $\mathbf{D}$ has full rank, then we will have infinite solutions for $\mathbf{x}$. Thus, we try to choose the $\mathbf{x}$ with the least number of non zero coefficients (sparsity constraint). This can be put down as\\
 \begin{center}
 $\genfrac{}{}{0pt}{}{argmin}{\mathbf{x}}\|\mathbf{x}\|_0$ subject to $\|\mathbf{y} - \mathbf{Dx}\|_2 < \epsilon$ 
 \end{center}
@@ -51,4 +45,22 @@ $\mathbf{E}_k=\left(\mathbf{Y}-\sum_{j \neq k} \mathbf{d}_j \mathbf{x}_T^j\right
 Now, $\mathbf{d}_k\mathbf{x}_T^k$ is a rank 1 matrix, and we may use SVD to get this, as SVD gives the best rank 1 approximation of a matrix (under the Frobenius norm), but if we do that here, then the new $\mathbf{x}_T^k$ will probably be filled, hence destroying our sparsity constraint (consider a column where an element of $\mathbf{x}_T^k$ is zero, and the column is of maximum possible sparsity. If the new element at this column of $\mathbf{x}_T^k$ is non-zero, we have broken the sparsity constraint). 
 To overcome this, we work with only those examples which use the $j^{th}$ atom in the current representation. Let the number of non-zero elements in $\mathbf{x}_T^j$ be $q$. Chose only these columns from $\mathbf{E}_k$ and call it $\mathbf{E}_k^R$. This is the error matrix corresponding to the examples which use atom $j$. Similarly, remove from $\mathbf{x}_T^j$ the zero elements and call this new row vector $\mathbf{x}_R^j$. 
 Now, if we minimize $\|\mathbf{E}_k^R - \mathbf{d}_k\mathbf{x}_R^k\|_F^2$ wrt $\mathbf{d}_j$ and $\mathbf{x}_R^j$, it is like minimizing the original function, but with the same non-zero columns or a subset of them. This can be done by SVD.
+\begin{center}
+$\mathbf{E}_k^R=\mathbf{USV}^T$
+\end{center}
+After this, we could take $\mathbf{d}_k^\prime$ to be the first column of $\mathbf{U}$ and $\mathbf{x}_R^k$ as $\mathbf{S}(1,1)*\mathbf{V}(:,1)^T$, ie the first column of $\mathbf{V}$ multiplied by the top left element of $\mathbf{S}$, written as a row.
+\subsection{The summary}
+The dictionary may be initialized with the examples. The dictionary update step goes over the columns, updating them one by one and always using the latest values. This accelerates convergence. If old values are used (for example, if we want to run this as a parallel algorithm) then the convergence is around 4 times slower. After one run through the columns of the dictionary, the coefficients are adjusted by a pursuit algorithm, and this repeats over and over, till some convergence criteria.
+\section{Pursuit algorithms to get sparse coefficients}
+There exist many algorithms, like MP, OMP, FOCUSS, etc. Here is the MP algorithm.
+\begin{verbatim}
+set R as y; // The signal to be represented as a sparse combination
+for i = 1:k // k is the number of non-zero coefficients allowed
+    get the column d from dictionary having maximum |<d, R>|;
+    set a(i) as <d, R>;
+    set b(i) as index of d in the dictionary;
+    set R as R - a(i)*d;
+end for
+\end{verbatim} 
+\begin{texttt}a(i)\end{texttt} contains the coefficients and \begin{texttt}b(i)\end{texttt} contains the indices of the corresponding atom in the dictionary. 
 \end{document}
