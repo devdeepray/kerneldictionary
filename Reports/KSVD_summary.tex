@@ -102,4 +102,6 @@ One issue here is that we cant do SVD directly because $\mathbf{E}_k^R$ may have
 $\left(\Phi\left(\mathbf{Y}\right)\mathbf{E}_k^R\right)^T\left(\Phi\left(\mathbf{Y}\right)\mathbf{E}_k^R\right)=\left(\mathbf{E}_k^R\right)^T\mathbb{K}\left(\mathbf{Y},\mathbf{Y}\right)\left(\mathbf{E}_k^R\right)=\mathbf{V}\Delta\mathbf{V}^T$
 \end{center}
 This gives us $\sigma_1=\sqrt{\Delta\left(1,1\right)}$ and $\mathbf{v}_1$ as the first column of $\mathbf{V}$. Thus, we have $\mathbf{x}_R^k$. After some algebraic manipulations, it can be seen that $\mathbf{a}_k=\sigma_1^{-1}\mathbf{E}_k^R\mathbf{v}_1$. This completes the description of the two phase kernel-SVD algorithm.
+\section{Noise removal using K-SVD}
+Noise removal is a potential application of K-SVD. We have a collection of noise-free images which serve as our model. We break the image into small patches, say 8x8, and build a dictionary of these 8x8 patches. The number of dictionary atoms is a free parameter that needs to be chosen. Very large numbers add up to the computational complexity. After the dictionary is trained using these model images, we try to get a sparse representation of image patches using this dictionary, in the hope that this would result in a noise-free image. 
 \end{document}
