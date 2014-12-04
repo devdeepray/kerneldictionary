@@ -14,7 +14,7 @@ function [sparseX] = getSparseCombination(dict, dat, T)
        if(mod(i, 100) == 0) 
            i
        end
-       sparseX(:, i) = OMP(dict, dat(:,i), T);
+       sparseX(:, i) = getSparseCombinationSingle(dict, dat(:,i), T);
    end
    toc
 end

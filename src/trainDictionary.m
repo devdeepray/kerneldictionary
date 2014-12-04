@@ -4,7 +4,9 @@ function [ dict ] = trainDictionary( Y, Kd, T, iters )
     end
     
     Ky = size(Y, 2); % Number of training inputs
-    [IDX, D] = normc(kmeans(Y', Kd)); % init dictionary
+    
+    [IDX, D] = kmeans(Y', Kd); % init dictionary
+    D = normc(D);
     D = D';
     for i = 1:iters
         i
