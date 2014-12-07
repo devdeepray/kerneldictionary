@@ -9,6 +9,6 @@ function [ image ] = getImageFromPatches( patches, k, dim1v, dim2v )
         end
         dim1
     end
-    image = image / ((k-1)*(k-1));
+    image = image / ((k)*(k));
 end
 

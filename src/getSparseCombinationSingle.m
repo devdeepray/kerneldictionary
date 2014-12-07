@@ -4,7 +4,7 @@
 %           dat: k data columns
 %           T: max number of non-zero in sparseX
 
-function [sparseX] = getSparseCombinationSingle(dict, dat, T)
+function [sparseX] = getSparseCombinationSingle(dict, dat, T, nvar)
    % Assume that dict is normalized
    res = dat;
    dictdim = size(dict);
@@ -19,7 +19,11 @@ function [sparseX] = getSparseCombinationSingle(dict, dat, T)
        components = orth(:,1:i)' * dat; % in a column
        projection = orth(:,1:i) * components;
        res = dat - projection;
+%        if(var(res) < nvar)
+%            break;
+%        end
    end
+   indices = indices(indices>0);
    sparseX(indices) = dict(:,indices) \ dat;
    
 end

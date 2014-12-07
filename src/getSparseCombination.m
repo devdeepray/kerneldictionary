@@ -1,20 +1,13 @@
-function [sparseX] = getSparseCombination(dict, dat, T)
-   addpath OMP;
-   
-%    sparseX = zeros(size(dict, 2), size(dat, 2));
-%    parfor i=1:size(dat, 2)
-%        if(mod(i, 100) == 0) 
-%            i
-%        end
-%        sparseX(:, i) = getSparseCombination1(dict, dat(:,i), T);
-%    end
-   tic
+function [sparseX] = getSparseCombination(dict, dat, T, nvar)
+    if(nargin <4)
+        nvar = 0;
+    end
+    
    sparseX = zeros(size(dict, 2), size(dat, 2));
    parfor i=1:size(dat, 2)
-       if(mod(i, 100) == 0) 
+       if(mod(i, 1000) == 0) 
            i
        end
-       sparseX(:, i) = getSparseCombinationSingle(dict, dat(:,i), T);
+       sparseX(:, i) = getSparseCombinationSingle(dict, dat(:,i), T, nvar);
    end
-   toc
 end

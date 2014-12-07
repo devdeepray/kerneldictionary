@@ -1,0 +1,48 @@
+nr_0
+Noisy barbara with 10% 0 mean independent gaussian noise
+
+nr_1
+Corrected nr_0 with the following parameters
+
+percNoise = 10;
+recSp = 5;
+kVar = 2;
+patchSize = 8;
+patchSpace = 2;
+dictSize = 512;
+
+nr_2
+
+percNoise = 10; % Noise percentage
+recSp = 1; % sparsity
+kVar = 2; % Variance threshold as multiple of noise for training
+patchSize = 8;
+patchSpace = 8;
+dictSize = 512;
+
+nr_3
+
+percNoise = 10; % Noise percentage
+recSp = 2; % sparsity
+kVar = 2; % Variance threshold as multiple of noise for training
+patchSize = 8;
+patchSpace = 8;
+dictSize = 512;
+
+nr_4
+
+percNoise = 10; % Noise percentage
+recSp = 2; % sparsity
+kVar = 2; % Variance threshold as multiple of noise for training
+patchSize = 8;
+patchSpace = 2;
+
+nr_5
+
+percNoise = 10; % Noise percentage
+recSp = 20; % sparsity
+kVar = 2; % Variance threshold as multiple of noise for training
+patchSize = 8;
+patchSpace = 8;
+dictSize = 512;
+dictSize = 512;
